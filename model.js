@@ -64,7 +64,7 @@
         this.roads = {};
         this.agents = {};
         this.roadsConnectedToPoint = {};
-        this.roadLoad = {};
+        this.roadLoadFactors = {};
     }
 
     Model.prototype.addPoint = function(p) {
@@ -105,7 +105,7 @@
         return this.roadsConnectedToPoint[p.id];
     }
 
-    Model.prototype.recalculateRoadLoad = function(invalidRoads) {
+    Model.prototype.recalculateRoadLoadFactors = function(invalidRoads) {
         var carsUsingRoads = Object.keys(this.agents).reduce((acc, agentID) => {
             if(agent.type === Agent.types.CAR) {
                 this.agents[agentID].roads.forEach((roadID) => {
@@ -123,13 +123,13 @@
 
             var cars = carsUsingRoads[roadID].length;
             if(cars <= maxFreeFlowCars) {
-                this.roadLoad[roadID] = 1;
+                this.roadLoadFactors[roadID] = 1;
             } else if( cars >= minQuarterFlowCars) {
-                this.roadLoad[roadID] = .25;
+                this.roadLoadFactors[roadID] = .25;
             } else {
                 cars -= maxFreeFlowCars;
                 cars /= minQuarterFlowCars - maxFreeFlowCars;
-                this.roadLoad[roadID] = .75 * cars + .25;
+                this.roadLoadFactors[roadID] = .75 * cars + .25;
             }
         });
     }

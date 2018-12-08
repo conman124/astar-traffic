@@ -8,20 +8,20 @@ function receiveModel(ser) {
 
 function receiveAgent(agent) {
     model.addAgent(agent);
-    recalculateRoadLoad(agent.roads);
+    recalculateRoadLoadFactors(agent.roads);
 }
 
 function removeAgent(agent) {
     var agent = model.agents[agent];
     delete model.agents[agent];
 
-    recalculateRoadLoad(agent.roads);
+    recalculateRoadLoadFactors(agent.roads);
 }
 
-function recalculateRoadLoad(roads) {
-    model.recalculateRoadLoad(roads);
+function recalculateRoadLoadFactors(roads) {
+    model.recalculateRoadLoadFactors(roads);
     return roads.reduce((acc, roadID) => {
-        acc[roadID] = model.roadLoad[roadID];
+        acc[roadID] = model.roadLoadFactors[roadID];
         return acc;
     }, {});
 }

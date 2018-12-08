@@ -42,6 +42,7 @@
             var p2 = this.model.getPoint(road.p2);
             this.ctx.moveTo(p1.x, p1.y);
             this.ctx.lineTo(p2.x, p2.y);
+            this.ctx.lineWidth = road.size * 2 - 1;
             this.ctx.stroke();
 
         }
@@ -69,13 +70,13 @@
             }
 
             if(agent.currentDirection == 1) {
-                x += road.rhsX * (radius + 1); // todo road width
-                y += road.rhsY * (radius + 1);
+                x += road.rhsX * (radius + road.size);
+                y += road.rhsY * (radius + road.size);
             } else {
-                x -= road.rhsX * (radius + 1);
-                y -= road.rhsY * (radius + 1);
+                x -= road.rhsX * (radius + road.size);
+                y -= road.rhsY * (radius + road.size);
             }
-            
+
             this.ctx.ellipse(x, y, radius, radius, 0, 0, 2*Math.PI, false);
             this.ctx.fill();
         }
