@@ -27,6 +27,8 @@
 
         this.onScreenCtx.drawImage(this.buffer, 0, 0);
 
+        this.model.advance();
+
         requestAnimationFrame(this.render);
     }
 
@@ -59,7 +61,7 @@
             var p2 = this.model.getPoint(road.p2);
 
             this.ctx.beginPath();
-            var pos = agent.currentDirection === 1 ? agent.currentPosition : 1 - agent.currentPosition
+            var pos = agent.currentPosition;
             var x = (p2.x - p1.x) * pos + p1.x;
             var y = (p2.y - p1.y) * pos + p1.y;
             var radius;

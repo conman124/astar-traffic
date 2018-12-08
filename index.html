@@ -18,12 +18,12 @@
         var p1 = new Point(20, 40);
         var p2 = new Point(120, 155);
         var p3 = new Point(150, 80);
-        var road = new Road(p1, p2, 1, 15);
-        var road2 = new Road(p2, p3, 3, 30);
-        var agent = new Agent(p1, [road, road2], Agent.types.CAR, 15);
+        var road = new Road(p1, p2, 1, 25);
+        var road2 = new Road(p2, p3, 3, 60);
+        var agent = new Agent(p1, [road, road2], Agent.types.CAR, 1, 0);
         agent.currentPosition = .25;
-        var agent2 = new Agent(p3, [road2], Agent.types.PEDESTRIAN, 1);
-        agent2.currentPosition = .4;
+        var agent2 = new Agent(p3, [road2], Agent.types.PEDESTRIAN, 0, 3);
+        agent2.currentPosition = .1;
 
         model.addPoint(p1);
         model.addPoint(p2);

@@ -29,13 +29,13 @@
         this.id = roadID++;
     }
 
-    function Agent(startPoint, roads, type, speed) {
-        this.startPoint = startPoint.id;
+    function Agent(startPoint, roads, type, speedFactor, baseSpeed) {
         this.roads = roads.map(road=>road.id);
         this.currentRoad = this.roads[0];
         this.type = type;
-        this.speed = speed;
-        if(roads[0].p1 === this.startPoint) {
+        this.speedFactor = speedFactor;
+        this.baseSpeed = baseSpeed;
+        if(roads[0].p1 === startPoint.id) {
             this.currentPosition = 0;
             this.currentDirection = 1;
         } else {
@@ -64,7 +64,7 @@
         this.roads = {};
         this.agents = {};
         this.roadsConnectedToPoint = {};
-        this.roadLoadFactors = {};
+        this.realtimeRoadLoadFactors = {};
     }
 
     Model.prototype.addPoint = function(p) {
@@ -105,31 +105,30 @@
         return this.roadsConnectedToPoint[p.id];
     }
 
-    Model.prototype.recalculateRoadLoadFactors = function(invalidRoads) {
+    Model.prototype.calculateRealtimeRoadLoadFactors = function() {
         var carsUsingRoads = Object.keys(this.agents).reduce((acc, agentID) => {
+            var agent = this.agents[agentID];
             if(agent.type === Agent.types.CAR) {
-                this.agents[agentID].roads.forEach((roadID) => {
-                    if(!acc[roadID]) { acc[roadID] = [];}
-                    acc[roadID].push(agentID);
-                });
+                if(!acc[agent.currentRoad]) { acc[agent.currentRoad] = [];}
+                acc[agent.currentRoad].push(agentID);
             }
             return acc;
         }, {});
 
-        invalidRoads.forEach(roadID => {
+        Object.keys(this.roads).forEach(roadID => {
             var road = this.roads[roadID];
             var maxFreeFlowCars = road.length / 25 * road.size;
             var minQuarterFlowCars = maxFreeFlowCars * 3;
 
-            var cars = carsUsingRoads[roadID].length;
+            var cars = carsUsingRoads[roadID] ? carsUsingRoads[roadID].length : 0;
             if(cars <= maxFreeFlowCars) {
-                this.roadLoadFactors[roadID] = 1;
+                this.realtimeRoadLoadFactors[roadID] = 1;
             } else if( cars >= minQuarterFlowCars) {
-                this.roadLoadFactors[roadID] = .25;
+                this.realtimeRoadLoadFactors[roadID] = .25;
             } else {
                 cars -= maxFreeFlowCars;
                 cars /= minQuarterFlowCars - maxFreeFlowCars;
-                this.roadLoadFactors[roadID] = .75 * cars + .25;
+                this.realtimeRoadLoadFactors[roadID] = .75 * cars + .25;
             }
         });
     }
@@ -139,6 +138,42 @@
             points: this.points,
             roads: this.roads
         };
+    }
+
+    Model.prototype.advance = function() {
+        const MILE_PX = 25;
+        this.calculateRealtimeRoadLoadFactors();
+
+        for(var agentID in this.agents) {
+            var agent = this.agents[agentID];
+            var mpm = agent.speedFactor * this.realtimeRoadLoadFactors[agent.currentRoad] * this.roads[agent.currentRoad].speed + agent.baseSpeed;
+            var mpf = mpm / 60 / 60;
+            var ppf = mpf * MILE_PX;
+            var amt = ppf / this.roads[agent.currentRoad].length;
+            agent.currentPosition += amt * agent.currentDirection;
+
+            if(agent.currentPosition < 0 || agent.currentPosition > 1) {
+                var i = agent.roads.indexOf(agent.currentRoad);
+                var current = this.roads[agent.currentRoad];
+                var next = this.roads[agent.roads[i+1]];
+                if(!next) {
+                    if(agent.reversed) { delete this.agents[agentID]; continue; } // TODO add to pathfind queue!
+                    agent.reversed = true;
+                    agent.roads = agent.roads.reverse();
+                    agent.currentPosition = agent.currentPosition > 1 ? 1 : 0;
+                    agent.currentDirection *= -1;
+                } else {
+                    agent.currentRoad = next.id;
+                    if(agent.currentPosition < 0 && current.p1 === next.p1 || agent.currentPosition > 1 && current.p2 === next.p1) {
+                        agent.currentPosition = 0;
+                        agent.currentDirection = 1;
+                    } else {
+                        agent.currentPosition = 1;
+                        agent.currentDirection = -1;
+                    }
+                }
+            }
+        }
     }
 
     Model.deserialize = function(ser) {

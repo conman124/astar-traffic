@@ -19,11 +19,12 @@ function removeAgent(agent) {
 }
 
 function recalculateRoadLoadFactors(roads) {
-    model.recalculateRoadLoadFactors(roads);
+    // TODO fix logic
+    /*model.recalculateRoadLoadFactors(roads);
     return roads.reduce((acc, roadID) => {
         acc[roadID] = model.roadLoadFactors[roadID];
         return acc;
-    }, {});
+    }, {});*/
 }
 
 onmessage = function({data: {type, payload}}) {
