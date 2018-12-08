@@ -1,0 +1,40 @@
+<html>
+<head>
+    <title>A* Traffic Simulator</title>
+    <style>
+        #canvas {
+            width:640px;
+            height:480px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="640" height="480"></canvas>
+
+    <script type="text/javascript" src="model.js"></script>
+    <script type="text/javascript" src="renderer.js"></script>
+    <script>
+        var model = new Model();
+        var p1 = new Point(20, 40);
+        var p2 = new Point(120, 155);
+        var p3 = new Point(150, 80);
+        var road = new Road(p1, p2);
+        var road2 = new Road(p2, p3);
+        var agent = new Agent(p1, [road, road2], Agent.types.CAR, 15);
+        agent.currentPosition = .25;
+        var agent2 = new Agent(p3, [road2], Agent.types.PEDESTRIAN, 1);
+        agent2.currentPosition = .4;
+
+        model.addPoint(p1);
+        model.addPoint(p2);
+        model.addPoint(p3);
+        model.addRoad(road);
+        model.addRoad(road2);
+        model.addAgent(agent);
+        model.addAgent(agent2);
+
+        var renderer = new Renderer(document.getElementById("canvas"), model);
+        renderer.start();
+    </script>
+</body> 
+</html>
