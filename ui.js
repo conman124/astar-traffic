@@ -199,7 +199,9 @@
 						this.p1 = new Point(this.mouseX, this.mouseY);
 					}
 				} else if (e.button == 2) {
-					// TODO remove road if near one
+					if(this.nearestRoad) {
+						this.model.removeRoad(this.nearestRoad);
+					}
 				}
 				break;
 			case STATES.ADDING_ROAD:

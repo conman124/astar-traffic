@@ -1,7 +1,7 @@
 (function() {
-    let pointID = 0;
-    let roadID = 0;
-    let agentID = 0;
+    let pointID = 1;
+    let roadID = 1;
+    let agentID = 1;
 
     function Point(x, y) {
         this.x = x;
@@ -103,7 +103,14 @@
 
     Model.prototype.getPoint = function(id) {
         return this.points[id];
-    }
+	}
+	
+	Model.prototype.removePoint = function(p) {
+		p = p.id ? p : this.points[p];
+
+		delete this.points[p.id];
+		delete this.roadsConnectedToPoint[p.id];
+	}
 
     Model.prototype.addRoad = function(r) {
         this.roads[r.id] = r;
@@ -118,6 +125,22 @@
         }
         this.roadsConnectedToPoint[r.p2][r.id] = r.id; 
 	}
+
+	Model.prototype.removeRoad = function(r) {
+		r = r.id ? r : this.roads[r];
+
+		delete this.roads[r.id];
+		delete this.roadsConnectedToPoint[r.p1][r.id];
+		delete this.roadsConnectedToPoint[r.p2][r.id];
+
+		if(Object.keys(this.roadsConnectedToPoint[r.p1]).length == 0) {
+			this.removePoint(r.p1);
+		}
+
+		if(Object.keys(this.roadsConnectedToPoint[r.p2]).length == 0) {
+			this.removePoint(r.p2);
+		}
+	}
 	
 	Model.prototype.splitRoad = function(road, point) {
 		var p2 = road.p2;
@@ -126,7 +149,9 @@
 		delete this.roadsConnectedToPoint[p2][road.id];
 		this.roadsConnectedToPoint[point.id] = {[road.id]: road.id};
 
-		// TODO recalculate length for road!
+		var p1 = this.points[road.p1];
+		var p2 = this.points[road.p2];
+		var len = Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2))
 
 		var road2 = new Road(point, this.points[p2], road.size, road.speed);
 		this.addRoad(road2);
