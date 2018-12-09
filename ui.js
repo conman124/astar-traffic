@@ -199,7 +199,12 @@
 						this.p1 = new Point(this.mouseX, this.mouseY);
 					}
 				} else if (e.button == 2) {
-					if(this.nearestRoad) {
+					if(this.nearestPoint) {
+						var roadsToRemove = this.model.getRoadsConnectedToPoint(this.nearestPoint.id);
+						Object.keys(roadsToRemove).forEach((id) => {
+							this.model.removeRoad(id);
+						})
+					} else if(this.nearestRoad) {
 						this.model.removeRoad(this.nearestRoad);
 					}
 				}
@@ -215,7 +220,8 @@
 						this.model.splitRoad(this.nearestRoad, p2);
 					} else {
 						p2 = new Point(this.effMouseX, this.effMouseY);
-					} 
+					}
+					if(this.p1.id == p2.id) { break; }
 					this.model.addPoint(this.p1);
 					this.model.addPoint(p2);
 					this.model.addRoad(new Road(this.p1, p2, this.roadSize, this.roadSpeed));

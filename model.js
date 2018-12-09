@@ -150,8 +150,9 @@
 		this.roadsConnectedToPoint[point.id] = {[road.id]: road.id};
 
 		var p1 = this.points[road.p1];
-		var p2 = this.points[road.p2];
-		var len = Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2))
+		var p2obj = this.points[road.p2];
+		var len = Math.sqrt(Math.pow(p1.x - p2obj.x, 2) + Math.pow(p1.y - p2obj.y, 2));
+		road.len = len;
 
 		var road2 = new Road(point, this.points[p2], road.size, road.speed);
 		this.addRoad(road2);
@@ -170,7 +171,7 @@
     }
 
     Model.prototype.getRoadsConnectedToPoint = function(p) {
-        return this.roadsConnectedToPoint[p.id];
+        return this.roadsConnectedToPoint[p.id || p];
     }
 
     Model.prototype.calculateRealtimeRoadLoadFactors = function() {
