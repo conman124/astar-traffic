@@ -68,7 +68,37 @@
     }
 
     Model.prototype.addPoint = function(p) {
-        this.points[p.id] = p;
+		if(this.points[p.id]) { return }
+		// Move a point around so that we don't end up with any
+		// perfectly vertical or horizontal lines.  This makes it
+		// so I don't have special case them later :)
+		var usedCoords = Object.keys(this.points).reduce((acc, pID) => {
+			var point = this.points[pID];
+			acc.x[point.x] = true;
+			acc.y[point.y] = true;
+			return acc;
+		}, {x: {}, y: {}});
+
+		var change = 1;
+		var dir = 1;
+		while(true) {
+			if(!usedCoords.x[p.x] && !usedCoords.y[p.y]) {
+				break;
+			}
+
+			if(usedCoords.x[p.x]) {
+				p.x += change * dir;
+			}
+
+			if(usedCoords.y[p.y]) {
+				p.y += change * dir;
+			}
+
+			dir *= -1;
+			change++;
+		}
+
+		this.points[p.id] = p;
     }
 
     Model.prototype.getPoint = function(id) {
@@ -87,7 +117,20 @@
             this.roadsConnectedToPoint[r.p2] = {};
         }
         this.roadsConnectedToPoint[r.p2][r.id] = r.id; 
-    }
+	}
+	
+	Model.prototype.splitRoad = function(road, point) {
+		var p2 = road.p2;
+		road.p2 = point.id;
+
+		delete this.roadsConnectedToPoint[p2][road.id];
+		this.roadsConnectedToPoint[point.id] = {[road.id]: road.id};
+
+		// TODO recalculate length for road!
+
+		var road2 = new Road(point, this.points[p2], road.size, road.speed);
+		this.addRoad(road2);
+	}
 
     Model.prototype.getRoad = function(id) {
         return this.roads[id];

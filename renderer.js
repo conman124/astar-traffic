@@ -22,7 +22,8 @@
         this.ctx.fillStyle = "#fff";
         this.ctx.fillRect(0,0,this.buffer.width, this.buffer.height);
 
-        this.renderRoads();
+		this.renderRoads();
+		this.renderPoints();
         this.renderAgents();
 
         this.onScreenCtx.drawImage(this.buffer, 0, 0);
@@ -48,7 +49,26 @@
             this.ctx.stroke();
 
         }
-    }
+	}
+	
+	Renderer.prototype.renderPoints = function() {
+		this.ctx.fillStyle = "#000";
+
+		var keys = Object.keys(this.model.points);
+        for(var i = 0; i < keys.length; i++) {
+			var point = this.model.getPoint(keys[i]);
+			var connected = this.model.getRoadsConnectedToPoint(point);
+			
+			if(Object.keys(connected).length < 2) {
+				continue;
+			}
+
+			this.ctx.beginPath();
+			this.ctx.ellipse(point.x, point.y, 4, 4, 0, 0, Math.PI * 2, false);
+            this.ctx.fill();
+
+        }
+	}
 
     Renderer.prototype.renderAgents = function() {
         this.ctx.fillStyle = "#00ff00";

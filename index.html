@@ -2,39 +2,38 @@
 <head>
     <title>A* Traffic Simulator</title>
     <style>
-        #canvas {
-            width:640px;
-            height:480px;
+        #canvas, #ui {
+            width:100%;
+            height:100%;
+			position: absolute;
+			top: 0px;
+			left: 0px;
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas" width="640" height="480"></canvas>
+	<canvas id="canvas"></canvas>
+	<canvas id="ui"></canvas>
 
     <script type="text/javascript" src="model.js"></script>
-    <script type="text/javascript" src="renderer.js"></script>
+	<script type="text/javascript" src="renderer.js"></script>
+	<script type="text/javascript" src="ui.js"></script>
     <script>
-        var model = new Model();
-        var p1 = new Point(20, 40);
-        var p2 = new Point(120, 155);
-        var p3 = new Point(150, 80);
-        var road = new Road(p1, p2, 1, 25);
-        var road2 = new Road(p2, p3, 3, 60);
-        var agent = new Agent(p1, [road, road2], Agent.types.CAR, 1, 0);
-        agent.currentPosition = .25;
-        var agent2 = new Agent(p3, [road2], Agent.types.PEDESTRIAN, 0, 3);
-        agent2.currentPosition = .1;
+		var model = new Model();
+		var canvas = document.getElementById("canvas");
+		var uicanvas = document.getElementById("ui")
+		canvas.width = uicanvas.width = window.innerWidth;
+		canvas.height = uicanvas.height = window.innerHeight;
 
-        model.addPoint(p1);
-        model.addPoint(p2);
-        model.addPoint(p3);
-        model.addRoad(road);
-        model.addRoad(road2);
-        model.addAgent(agent);
-        model.addAgent(agent2);
+        var renderer = new Renderer(canvas, model);
+		renderer.start();
+		var ui = new UI(uicanvas, model);
+		ui.start();
 
-        var renderer = new Renderer(document.getElementById("canvas"), model);
-        renderer.start();
+		window.addEventListener("resize", () => {
+			canvas.width = uicanvas.width = window.innerWidth;
+			canvas.height = uicanvas.height = window.innerHeight;
+		});
     </script>
 </body> 
 </html>
