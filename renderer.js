@@ -34,7 +34,7 @@
     }
 
     Renderer.prototype.renderRoads = function() {
-        this.ctx.strokeStyle = "#ff0000";
+		const redr = 255, redg = redb = 0, greenr = 0, greeng = 255, greenb = 0
 
         var keys = Object.keys(this.model.roads);
         for(var i = 0; i < keys.length; i++) {
@@ -45,7 +45,9 @@
             var p2 = this.model.getPoint(road.p2);
             this.ctx.moveTo(p1.x, p1.y);
             this.ctx.lineTo(p2.x, p2.y);
-            this.ctx.lineWidth = road.size * 2 - 1;
+			this.ctx.lineWidth = road.size * 2 - 1;
+			var ratio = (road.speed - 20) / 60;
+			this.ctx.strokeStyle = `rgb(${ratio * (greenr - redr) + redr},${ratio * (greeng - redg) + redg},${ratio * (greenb - redb) + redb})`;
             this.ctx.stroke();
 
         }
