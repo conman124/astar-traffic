@@ -1,4 +1,4 @@
-(function() {
+(function(global) {
     let pointID = 1;
     let roadID = 1;
     let agentID = 1;
@@ -6,7 +6,7 @@
     function Point(x, y) {
         this.x = x;
         this.y = y;
-        this.id = pointID++;
+        this.id = "p" + pointID++;
     }
 
     function Road(p1, p2, size, speed) {
@@ -26,23 +26,24 @@
 
         this.size = size;
         this.speed = speed;
-        this.id = roadID++;
+        this.id = "r" + roadID++;
     }
 
-    function Agent(startPoint, roads, type, speedFactor, baseSpeed) {
-        this.roads = roads.map(road=>road.id);
+    function Agent(startPoint, roads, type, speedFactor, baseSpeed, workerID) {
+        this.roads = roads.map(r=>r.id);
         this.currentRoad = this.roads[0];
         this.type = type;
         this.speedFactor = speedFactor;
         this.baseSpeed = baseSpeed;
-        if(roads[0].p1 === startPoint.id) {
+        if(roads[0].p1 === startPoint) {
             this.currentPosition = 0;
             this.currentDirection = 1;
         } else {
             this.currentPosition = 1;
             this.currentDirection = -1;
-        }
-        this.id = agentID++;
+		}
+		this.workerID = workerID;
+        this.id = "a" + agentID++;
     }
 
     const types = {
@@ -64,7 +65,10 @@
         this.roads = {};
         this.agents = {};
         this.roadsConnectedToPoint = {};
-        this.realtimeRoadLoadFactors = {};
+		this.realtimeRoadLoadFactors = {};
+		this.averageSteps = 0;
+		this.averageStepCount = 0;
+		this.step = 0;
     }
 
     Model.prototype.addPoint = function(p) {
@@ -152,7 +156,7 @@
 		var p1 = this.points[road.p1];
 		var p2obj = this.points[road.p2];
 		var len = Math.sqrt(Math.pow(p1.x - p2obj.x, 2) + Math.pow(p1.y - p2obj.y, 2));
-		road.len = len;
+		road.length = len;
 
 		var road2 = new Road(point, this.points[p2], road.size, road.speed);
 		this.addRoad(road2);
@@ -162,8 +166,9 @@
         return this.roads[id];
     }
 
-    Model.prototype.addAgent = function(r) {
-        this.agents[r.id] = r;
+    Model.prototype.addAgent = function(a) {
+		a.step = this.step;
+        this.agents[a.id] = a;
     }
 
     Model.prototype.getAgent = function(id) {
@@ -186,8 +191,8 @@
 
         Object.keys(this.roads).forEach(roadID => {
             var road = this.roads[roadID];
-            var maxFreeFlowCars = road.length / 25 * road.size;
-            var minQuarterFlowCars = maxFreeFlowCars * 3;
+            var maxFreeFlowCars = Math.max(1, road.length / 5 * road.size);
+            var minQuarterFlowCars = maxFreeFlowCars * 6;
 
             var cars = carsUsingRoads[roadID] ? carsUsingRoads[roadID].length : 0;
             if(cars <= maxFreeFlowCars) {
@@ -210,7 +215,9 @@
     }
 
     Model.prototype.advance = function() {
-        const MILE_PX = 25;
+		this.step++;
+
+        const MILE_PX = 75;
         this.calculateRealtimeRoadLoadFactors();
 
         for(var agentID in this.agents) {
@@ -226,11 +233,13 @@
                 var current = this.roads[agent.currentRoad];
                 var next = this.roads[agent.roads[i+1]];
                 if(!next) {
-                    if(agent.reversed) { delete this.agents[agentID]; continue; } // TODO add to pathfind queue!
-                    agent.reversed = true;
-                    agent.roads = agent.roads.reverse();
-                    agent.currentPosition = agent.currentPosition > 1 ? 1 : 0;
-                    agent.currentDirection *= -1;
+					var steps = this.step - agent.step;
+					this.calculateNewAverageSteps(steps);
+					if(this.onAgentFinished) {
+						this.onAgentFinished(this.agents[agentID]);
+					}
+					delete this.agents[agentID];
+					continue;
                 } else {
                     agent.currentRoad = next.id;
                     if(agent.currentPosition < 0 && current.p1 === next.p1 || agent.currentPosition > 1 && current.p2 === next.p1) {
@@ -243,7 +252,15 @@
                 }
             }
         }
-    }
+	}
+	
+	Model.prototype.calculateNewAverageSteps = function(steps) {
+		var total = this.averageSteps * this.averageStepCount;
+		total += steps;
+		this.averageStepCount++;
+		this.averageSteps = total / this.averageStepCount;
+		document.getElementById("average").innerHTML = `Average simulation steps required: ${Math.round(this.averageSteps)}`;
+	}
 
     Model.deserialize = function(ser) {
         var model = new Model();
@@ -256,8 +273,8 @@
         return model;
     }
 
-    window.Point = Point;
-    window.Road = Road;
-    window.Agent = Agent;
-    window.Model = Model;
-})();
+    global.Point = Point;
+    global.Road = Road;
+    global.Agent = Agent;
+    global.Model = Model;
+})(this);

@@ -11,10 +11,15 @@
 
 		this.render = this.render.bind(this);
 
-		document.addEventListener("mousemove", this.onMouseMove.bind(this));
-		document.addEventListener("keydown", this.onKeyDown.bind(this));
-		document.addEventListener("mousedown", this.onMouseDown.bind(this));
-		document.addEventListener("contextmenu", this.onContext.bind(this));
+		this.onMouseMove = this.onMouseMove.bind(this);
+		this.onKeyDown = this.onKeyDown.bind(this);
+		this.onMouseDown = this.onMouseDown.bind(this);
+		this.onContext = this.onContext.bind(this);
+
+		document.addEventListener("mousemove", this.onMouseMove);
+		document.addEventListener("keydown", this.onKeyDown);
+		this.canvas.addEventListener("mousedown", this.onMouseDown);
+		this.canvas.addEventListener("contextmenu", this.onContext);
 
 		this.roadSize = 1;
 		this.roadSpeed = 35;
@@ -28,6 +33,14 @@
 		requestAnimationFrame(this.render);
 	}
 
+	UI.prototype.stop = function() {
+		document.removeEventListener("mousemove", this.onMouseMove);
+		document.removeEventListener("keydown", this.onKeyDown);
+		this.canvas.removeEventListener("mousedown", this.onMouseDown);
+		this.canvas.removeEventListener("contextmenu", this.onContext);
+		this.stopped = true;
+	}
+
 	UI.prototype.render = function() {
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -39,7 +52,9 @@
 		this.ctx.fillStyle = "#ff0000";
 		this.ctx.fillText(`Size ${this.roadSize}, speed ${this.roadSpeed}`, this.mouseX + 10, this.mouseY+4);
 
-		requestAnimationFrame(this.render);
+		if(!this.stopped) {
+			requestAnimationFrame(this.render);
+		}
 	}
 
 	UI.prototype.renderDefault = function() {

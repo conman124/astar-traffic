@@ -28,33 +28,61 @@
 
         this.onScreenCtx.drawImage(this.buffer, 0, 0);
 
-        this.model.advance();
+		if(this.actuallySimulating) {
+			this.model.advance();
+		}
 
-        requestAnimationFrame(this.render);
+		if(!this.stopped) {
+			requestAnimationFrame(this.render);
+		}
     }
 
     Renderer.prototype.renderRoads = function() {
+		if(this.savedRoads) { 
+			this.ctx.drawImage(this.savedRoads, 0, 0);
+			return;
+		}
+
 		const redr = 255, redg = redb = 0, greenr = 0, greeng = 255, greenb = 0
+		var ctx = this.ctx;
+		if(this.actuallySimulating) {
+			this.savedRoads = document.createElement("canvas");
+			this.savedRoads.width = this.onScreenCanvas.width;
+			this.savedRoads.height = this.onScreenCanvas.height;
+			ctx = this.savedRoads.getContext("2d");
+		}
 
         var keys = Object.keys(this.model.roads);
         for(var i = 0; i < keys.length; i++) {
             var road = this.model.getRoad(keys[i]);
 
-            this.ctx.beginPath();
+            ctx.beginPath();
             var p1 = this.model.getPoint(road.p1);
             var p2 = this.model.getPoint(road.p2);
-            this.ctx.moveTo(p1.x, p1.y);
-            this.ctx.lineTo(p2.x, p2.y);
-			this.ctx.lineWidth = road.size * 2 - 1;
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+			ctx.lineWidth = road.size * 2 - 1;
 			var ratio = (road.speed - 20) / 60;
-			this.ctx.strokeStyle = `rgb(${ratio * (greenr - redr) + redr},${ratio * (greeng - redg) + redg},${ratio * (greenb - redb) + redb})`;
-            this.ctx.stroke();
-
-        }
+			ctx.strokeStyle = `rgb(${ratio * (greenr - redr) + redr},${ratio * (greeng - redg) + redg},${ratio * (greenb - redb) + redb})`;
+            ctx.stroke();
+		}
 	}
 	
 	Renderer.prototype.renderPoints = function() {
-		this.ctx.fillStyle = "#000";
+		if(this.savedPoints) { 
+			this.ctx.drawImage(this.savedPoints, 0, 0);
+			return;
+		}
+
+		var ctx = this.ctx;
+		if(this.actuallySimulating) {
+			this.savedPoints = document.createElement("canvas");
+			this.savedPoints.width = this.onScreenCanvas.width;
+			this.savedPoints.height = this.onScreenCanvas.height;
+			ctx = this.savedPoints.getContext("2d");
+		}
+		
+		ctx.fillStyle = "#000";
 
 		var keys = Object.keys(this.model.points);
         for(var i = 0; i < keys.length; i++) {
@@ -65,18 +93,22 @@
 				continue;
 			}
 
-			this.ctx.beginPath();
-			this.ctx.ellipse(point.x, point.y, 4, 4, 0, 0, Math.PI * 2, false);
-            this.ctx.fill();
-
+			ctx.beginPath();
+			ctx.ellipse(point.x, point.y, 4, 4, 0, 0, Math.PI * 2, false);
+            ctx.fill();
         }
 	}
 
     Renderer.prototype.renderAgents = function() {
-        this.ctx.fillStyle = "#00ff00";
+		if(!this.actuallySimulating) { return; }
+
 
         var keys = Object.keys(this.model.agents);
         for(var i = 0; i < keys.length; i++) {
+			this.ctx.fillStyle = "#00ff00";
+			if(parseInt(this.model.agents[keys[i]].id.substring(1),10) % 50 === 0) {
+				this.ctx.fillStyle = "#ff0000";
+			}
             var agent = this.model.getAgent(keys[i]);
             var road = this.model.getRoad(agent.currentRoad);
             var p1 = this.model.getPoint(road.p1);
@@ -104,7 +136,15 @@
             this.ctx.ellipse(x, y, radius, radius, 0, 0, 2*Math.PI, false);
             this.ctx.fill();
         }
-    }
+	}
+	
+	Renderer.prototype.startSimulating = function() {
+		this.actuallySimulating = true;
+	}
+
+	Renderer.prototype.stop = function() {
+		this.stopped = true;
+	}
 
     window.Renderer = Renderer;
 })();
