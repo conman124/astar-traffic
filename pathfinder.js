@@ -26,7 +26,7 @@
 	PathFinder.prototype.h = function(curPoint, endPoint) {
 		// TODO improve heuristic, possibly taking road load into account
 		var p1 = this.model.points[curPoint], p2 = this.model.points[endPoint];
-		return Math.sqrt(Math.pow(p1.x - p2.x, 2), + Math.pow(p1.y - p1.y, 2)) / 40 ;
+		return Math.sqrt(Math.pow(p1.x - p2.x, 2), + Math.pow(p1.y - p1.y, 2)) / 80 ;
 	}
 
 	PathFinder.prototype.findPaths = function() {
@@ -86,7 +86,7 @@
 				var neighbor = potentialNextPoints[i];
 				if(closedSet[neighbor.point]) { continue; }
 
-				var time = this.model.roads[neighbor.road].speed / this.model.roads[neighbor.road].length / (typeof this.roadLoad[neighbor.road] != "undefined" ? this.roadLoad[neighbor.road] : 1);
+				var time = this.model.roads[neighbor.road].length / this.model.roads[neighbor.road].speed / (typeof this.roadLoad[neighbor.road] != "undefined" ? this.roadLoad[neighbor.road] : 1);
 
 				var tentativeG = dequeued.g + time;
 				if(typeof g[neighbor.point] !== "undefined" && g[neighbor.point] <= tentativeG) {

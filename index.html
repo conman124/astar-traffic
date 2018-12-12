@@ -30,7 +30,7 @@
 			opacity: 0;
 		}
 
-		#average {
+		#overlay {
 			position: absolute;
 			top: 16;
 			right: 16;
@@ -47,10 +47,14 @@
 			<div><button id="start">Start</button></div>		
 			<div><label for="agentCount">Vehicle count</label> <input type="number" min="0" step="100" value="1000" id="agentCount"></div>
 			<div><label for="workerCount">Pathfinder worker count (try #cores - 2?)</label> <input type="number" min="0" step="1" value="4" id="workerCount"></div>
+			<div><label for="useLoadEstimator">Use a road load estimator to find paths</label> <input type="checkbox" checked id="useLoadEstimator"></div>
 			<div><button onclick="document.getElementById('load').click()">Load map</button><input type="file" id="load" /></div>
 			<div><button id="save">Save map</button></div>
 		</div>
-		<div id="average"/>
+		<div id="overlay">
+			<div id="average"></div>
+			<div id="backlog"></div>
+		</div>
 	</script>
     <script type="text/javascript" src="model.js"></script>
 	<script type="text/javascript" src="renderer.js"></script>

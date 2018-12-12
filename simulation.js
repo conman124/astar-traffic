@@ -51,11 +51,13 @@
 		this.workerCount = workerCount;
 		var agentCount = parseInt(document.getElementById("agentCount").value, 10);
 		this.agentCount = agentCount;
+		this.useLoadEstimator = document.getElementById("useLoadEstimator").checked;
 
 		document.getElementById("toolbox").remove();
 	
 		this.workers = [];
 		this.workerPorts = [];
+		this.backlogs = [];
 
 		for(var i = 0; i < workerCount; i++ ) {
 			var worker = new Worker("./pathfinder.js");
@@ -64,15 +66,20 @@
 			worker.addEventListener("message", this.processMessage);
 			this.workers.push(worker);
 			this.workerPorts.push(channel.port2);
+			this.backlogs[i] = Math.floor(agentCount / workerCount) + ((agentCount % workerCount >= i + 1 ) ? 1 : 0);
 		}
 
-		var worker = new Worker("./loadEstimator.js");
-		worker.postMessage({type: "START", payload: {model: this.model.serialize(), workerPorts: this.workerPorts}}, this.workerPorts);
-		this.workers.push(worker);
+		if(this.useLoadEstimator) {
+			var worker = new Worker("./loadEstimator.js");
+			worker.postMessage({type: "START", payload: {model: this.model.serialize(), workerPorts: this.workerPorts}}, this.workerPorts);
+			this.workers.push(worker);
+		}
 	}
 
 	Simulation.prototype.processMessage = function({data}) {
 		if(data.type === "agent") {
+			this.backlogs[data.workerID % this.workerCount]--;
+			document.getElementById("backlog").innerText = `Backlog: ${this.backlogs.reduce((acc,i)=>acc+i,0)}`;
 			this.model.addAgent(new Agent(data.startPoint, data.roads.map(r=>this.model.roads[r]), Agent.types.CAR, .90 + Math.random()/5, 0, data.workerID))
 		}
 	}
@@ -127,7 +134,12 @@
 		var id = agent.workerID;
 		var worker = id % this.workerCount;
 		this.workers[worker].postMessage({type: "recalculate", agent: id});
-		this.workers[this.workers.length-1].postMessage({type: "REMOVE_AGENT", payload: agent})
+		this.backlogs[worker]++;
+
+		document.getElementById("backlog").innerText = `Backlog: ${this.backlogs.reduce((acc,i)=>acc+i,0)}`;
+		if(this.useLoadEstimator) {
+			this.workers[this.workers.length-1].postMessage({type: "REMOVE_AGENT", payload: agent})
+		}
 	}
 
 	global.Simulation = Simulation;
