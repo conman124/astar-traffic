@@ -9,7 +9,7 @@
         this.ctx = this.buffer.getContext('2d');
 
         this.model = model;
-
+		this.times = [];
 
         this.render = this.render.bind(this);
     }
@@ -34,6 +34,16 @@
 
 		if(!this.stopped) {
 			requestAnimationFrame(this.render);
+		}
+
+		if(this.actuallySimulating) {
+			const now = performance.now();
+			while (this.times.length > 0 && this.times[0] <= now - 1000) {
+			  this.times.shift();
+			}
+			this.times.push(now);
+			var fps = this.times.length;
+			document.getElementById("fps").innerHTML = `${fps} fps`;
 		}
     }
 
