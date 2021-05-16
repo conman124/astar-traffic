@@ -26,7 +26,7 @@
 	PathFinder.prototype.h = function(curPoint, endPoint) {
 		// TODO improve heuristic, possibly taking road load into account
 		var p1 = this.model.points[curPoint], p2 = this.model.points[endPoint];
-		return Math.sqrt(Math.pow(p1.x - p2.x, 2), + Math.pow(p1.y - p1.y, 2)) / 80 ;
+		return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2)) / 80 ;
 	}
 
 	PathFinder.prototype.findPaths = function() {
