@@ -8,4 +8,5 @@ to avoid congested routes.
 
 Go to [https://conman124.github.io/astar-traffic](https://conman124.github.io/astar-traffic) for a demo.  You can import a map
 (download from the repo) or create your own by using the mouse.  Use number keys 1-3 to set the size of the road (determines how many
-vehicles can travel on it without needing to slow down) and the up/down keys to change the speed limit.
+vehicles can travel on it without needing to slow down) and the up/down keys to change the speed limit.  Every 50th vehicle will be
+drawn in red to help identify individual vehicles.
